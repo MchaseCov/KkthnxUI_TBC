@@ -490,8 +490,7 @@ function Module:SharedTooltip_SetBackdropStyle()
 	if not self.isTipStyled then
 		return
 	end
-
-	self:SetBackdrop(nil)
+  self.NineSlice:SetAlpha(0)
 end
 
 function Module:OnEnable()
@@ -502,7 +501,7 @@ function Module:OnEnable()
 	hooksecurefunc("GameTooltip_ShowStatusBar", Module.GameTooltip_ShowStatusBar)
 	hooksecurefunc("GameTooltip_ShowProgressBar", Module.GameTooltip_ShowProgressBar)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", Module.GameTooltip_SetDefaultAnchor)
-	hooksecurefunc("GameTooltip_SetBackdropStyle", Module.SharedTooltip_SetBackdropStyle)
+	hooksecurefunc("SharedTooltip_SetBackdropStyle", Module.SharedTooltip_SetBackdropStyle)
 	hooksecurefunc("GameTooltip_AnchorComparisonTooltips", Module.GameTooltip_ComparisonFix)
 
 	-- Elements
