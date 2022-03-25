@@ -1,4 +1,4 @@
-local K = unpack(select(2, ...))
+local K = unpack(KkthnxUI)
 
 -- Based on oUF_Swing (by p3lim and Thalyra)
 

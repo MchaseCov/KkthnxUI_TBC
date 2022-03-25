@@ -1,4 +1,4 @@
-local K, _, L = unpack(select(2, ...))
+local K, _, L = unpack(KkthnxUI)
 
 -- Module Locales
 L["%s players"] = "%s players"

@@ -1,4 +1,4 @@
-local _, C = unpack(select(2, ...))
+local _, C = unpack(KkthnxUI)
 
 local ACTIONBAR_FADER = {
 	fadeInAlpha = 1, -- Transparency when displayed

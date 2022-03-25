@@ -1,4 +1,4 @@
-local K = unpack(select(2, ...))
+local K = unpack(KkthnxUI)
 local Module = K:GetModule("AurasTable")
 
 -- 萨满的法术监控
