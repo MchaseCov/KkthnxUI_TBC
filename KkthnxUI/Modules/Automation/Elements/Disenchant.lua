@@ -1,4 +1,4 @@
-local K, C = unpack(select(2, ...))
+local K, C = unpack(KkthnxUI)
 
 -- One-click Milling, Prospecting and Disenchanting(Molinari by p3lim)
 

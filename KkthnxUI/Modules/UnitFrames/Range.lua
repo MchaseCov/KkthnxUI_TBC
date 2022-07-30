@@ -1,4 +1,4 @@
-local K = _G.unpack(select(2, ...))
+local K = _G.unpack(KkthnxUI)
 local Module = K:GetModule("Unitframes")
 
 local UnitCanAttack = UnitCanAttack

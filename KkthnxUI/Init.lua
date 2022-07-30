@@ -14,6 +14,7 @@ local table_insert = _G.table.insert
 local tonumber = _G.tonumber
 local unpack = _G.unpack
 
+local Enum = _G.Enum
 local BAG_ITEM_QUALITY_COLORS = _G.BAG_ITEM_QUALITY_COLORS
 local CUSTOM_CLASS_COLORS = _G.CUSTOM_CLASS_COLORS
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
@@ -36,7 +37,12 @@ local UnitLevel = _G.UnitLevel
 local UnitName = _G.UnitName
 local UnitRace = _G.UnitRace
 local UnitSex = _G.UnitSex
-
+local COMBATLOG_OBJECT_AFFILIATION_MINE = _G.COMBATLOG_OBJECT_AFFILIATION_MINE
+local COMBATLOG_OBJECT_AFFILIATION_PARTY = _G.COMBATLOG_OBJECT_AFFILIATION_PARTY
+local COMBATLOG_OBJECT_AFFILIATION_RAID = _G.COMBATLOG_OBJECT_AFFILIATION_RAID
+local COMBATLOG_OBJECT_REACTION_FRIENDLY = _G.COMBATLOG_OBJECT_REACTION_FRIENDLY
+local COMBATLOG_OBJECT_CONTROL_PLAYER = _G.COMBATLOG_OBJECT_CONTROL_PLAYER
+local COMBATLOG_OBJECT_TYPE_PET = _G.COMBATLOG_OBJECT_TYPE_PET
 -- Deprecated
 LE_ITEM_CLASS_CONSUMABLE = LE_ITEM_CLASS_CONSUMABLE or Enum.ItemClass.Consumable
 LE_ITEM_CLASS_CONTAINER = LE_ITEM_CLASS_CONTAINER or Enum.ItemClass.Container
@@ -55,35 +61,42 @@ LE_ITEM_CLASS_MISCELLANEOUS = LE_ITEM_CLASS_MISCELLANEOUS or Enum.ItemClass.Misc
 LE_ITEM_CLASS_GLYPH = LE_ITEM_CLASS_GLYPH or Enum.ItemClass.Glyph
 LE_ITEM_CLASS_BATTLEPET = LE_ITEM_CLASS_BATTLEPET or Enum.ItemClass.Battlepet
 LE_ITEM_CLASS_WOW_TOKEN = LE_ITEM_CLASS_WOW_TOKEN or Enum.ItemClass.WoWToken
-
 -- Engine
 Engine[1] = {} -- K, Main
 Engine[2] = {} -- C, Config
-Engine[3] = {} -- L, Locales
+Engine[3] = {} -- L, Locale
 
 local K, C, L = unpack(Engine)
 
+-- Deprecated
+LE_ITEM_QUALITY_ARTIFACT = Enum.ItemQuality.Artifact
+LE_ITEM_QUALITY_COMMON = Enum.ItemQuality.Common
+LE_ITEM_QUALITY_EPIC = Enum.ItemQuality.Epic
+LE_ITEM_QUALITY_HEIRLOOM = Enum.ItemQuality.Heirloom
+LE_ITEM_QUALITY_LEGENDARY = Enum.ItemQuality.Legendary
+LE_ITEM_QUALITY_POOR = Enum.ItemQuality.Poor
+LE_ITEM_QUALITY_RARE = Enum.ItemQuality.Rare
+LE_ITEM_QUALITY_UNCOMMON = Enum.ItemQuality.Uncommon
+
 do
 	K.Base64 = LibStub("LibBase64-1.0-KkthnxUI")
+	K.DBIcon = LibStub("LibDBIcon-1.0-KkthnxUI")
+	K.DataBroker = LibStub("LibDataBroker-1.1-KkthnxUI")
+	K.ChangeLog = LibStub("LibChangelog-KkthnxUI")
 	K.Deflate = LibStub("LibDeflate-KkthnxUI")
 	K.HideButtonGlow = LibStub("LibButtonGlow-1.0-KkthnxUI", true).HideOverlayGlow
+	K.LibSharedMedia = LibStub("LibSharedMedia-3.0", true)
+	K.RangeCheck = LibStub("LibRangeCheck-2.0-KkthnxUI")
 	K.Serialize = LibStub("LibSerialize-KkthnxUI")
 	K.ShowButtonGlow = LibStub("LibButtonGlow-1.0-KkthnxUI", true).ShowOverlayGlow
 	K.Unfit = LibStub("Unfit-1.0-KkthnxUI")
-	K.RangeCheck = LibStub("LibRangeCheck-2.0-KkthnxUI")
-	K.LibSharedMedia = LibStub("LibSharedMedia-3.0", true)
 	K.cargBags = Engine.cargBags
 	K.oUF = Engine.oUF
 end
 
-K.AddOns = {}
-K.AddOnVersion = {}
-
 K.Title = GetAddOnMetadata(AddOnName, "Title")
 K.Version = GetAddOnMetadata(AddOnName, "Version")
 K.Credits = GetAddOnMetadata(AddOnName, "X-Credits")
-
-_G.BINDING_HEADER_KKUI = K.Title
 
 K.Noop = function()
 	return
@@ -109,7 +122,8 @@ K.WowPatch, K.WowBuild, K.WowRelease, K.TocVersion = GetBuildInfo()
 K.WowBuild = tonumber(K.WowBuild)
 K.GreyColor = "|CFF7b8489"
 K.InfoColor = "|CFF669DFF"
-K.InfoColorTint = "|CFFA3D3FF"
+K.InfoColorRGB = {0.4, 0.6, 1}
+K.InfoColorTint = "|CFF3ba1c5" -- 30% Tint
 K.SystemColor = "|CFFFFCC66"
 K.LeftButton = " |TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:230:307|t "
 K.RightButton = " |TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:333:410|t "
@@ -117,6 +131,7 @@ K.ScrollButton = " |TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:
 K.AFKTex = "|T"..FRIENDS_TEXTURE_AFK..":14:14:0:0:16:16:1:15:1:15|t"
 K.DNDTex = "|T"..FRIENDS_TEXTURE_DND..":14:14:0:0:16:16:1:15:1:15|t"
 K.KkthnxUIString = "[KkthnxUI]: "
+K.IsNewPatch = select(4, GetBuildInfo()) >= 90105 -- 9.1.0
 
 function K.IsMyPet(flags)
 	return bit_band(flags, COMBATLOG_OBJECT_AFFILIATION_MINE) > 0
@@ -124,16 +139,7 @@ end
 K.PartyPetFlags = bit_bor(COMBATLOG_OBJECT_AFFILIATION_PARTY, COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET)
 K.RaidPetFlags = bit_bor(COMBATLOG_OBJECT_AFFILIATION_RAID, COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_CONTROL_PLAYER, COMBATLOG_OBJECT_TYPE_PET)
 
-K.CodeDebug = false
-
-K.QualityColors = {}
-local qualityColors = BAG_ITEM_QUALITY_COLORS
-for index, value in pairs(qualityColors) do
-	K.QualityColors[index] = {r = value.r, g = value.g, b = value.b}
-end
-K.QualityColors[-1] = {r = 1, g = 1, b = 1}
-K.QualityColors[LE_ITEM_QUALITY_POOR] = {r = 0.61, g = 0.61, b = 0.61}
-K.QualityColors[LE_ITEM_QUALITY_COMMON] = {r = 1, g = 1, b = 1}
+K.CodeDebug = true
 
 K.ClassList = {}
 for k, v in pairs(LOCALIZED_CLASS_NAMES_MALE) do
@@ -149,8 +155,18 @@ for class, value in pairs(colors) do
 	K.ClassColors[class].b = value.b
 	K.ClassColors[class].colorStr = value.colorStr
 end
+
 K.r, K.g, K.b = K.ClassColors[K.Class].r, K.ClassColors[K.Class].g, K.ClassColors[K.Class].b
 K.MyClassColor = string_format("|cff%02x%02x%02x", K.r * 255, K.g * 255, K.b * 255)
+
+K.QualityColors = {}
+local qualityColors = BAG_ITEM_QUALITY_COLORS
+for index, value in pairs(qualityColors) do
+	K.QualityColors[index] = {r = value.r, g = value.g, b = value.b}
+end
+K.QualityColors[-1] = {r = 1, g = 1, b = 1}
+K.QualityColors[LE_ITEM_QUALITY_POOR] = {r = 0.61, g = 0.61, b = 0.61}
+--K.QualityColors[LE_ITEM_QUALITY_COMMON] = {r = 1, g = 1, b = 1}
 
 local events = {}
 local host = CreateFrame("Frame")
@@ -231,9 +247,6 @@ function K.SetupUIScale(init)
 		local ratio = 768 / K.ScreenHeight
 		K.Mult = (pixel / scale) - ((pixel - ratio) / scale)
 	elseif not InCombatLockdown() then
-		if scale >= 0.64 then
-			SetCVar("uiscale", scale) -- Fix blizzard chatframe offset
-		end
 		UIParent:SetScale(scale)
 	end
 end
@@ -256,7 +269,6 @@ local function UpdatePixelScale(event)
 end
 
 K:RegisterEvent("PLAYER_LOGIN", function()
-	SetCVar("useUiScale", 1) -- Fix blizzard chatframe offset
 	K.SetupUIScale()
 	K:RegisterEvent("UI_SCALE_CHANGED", UpdatePixelScale)
 
@@ -285,103 +297,45 @@ K:RegisterEvent("PLAYER_LEVEL_UP", function(_, level)
 	K.Level = level
 end)
 
+K.AddOns = {}
+K.AddOnVersion = {}
 for i = 1, GetNumAddOns() do
-	local Name = GetAddOnInfo(i)
-	K.AddOns[string_lower(Name)] = GetAddOnEnableState(K.Name, Name) == 2
+	local Name, _, _, _, Reason = GetAddOnInfo(i)
+	K.AddOns[string_lower(Name)] = GetAddOnEnableState(K.Name, Name) == 2 and (not Reason or Reason ~= "DEMAND_LOADED")
 	K.AddOnVersion[string_lower(Name)] = GetAddOnMetadata(Name, "Version")
 end
 
--- Debugging
--- Sourced: GW2_UI
+---------------
+-- PROFILING --
+---------------
 
--- AddOns Needed
--- !Stragglers
--- _DebugLog
+do
+	local info = {}
 
--- If you wanna debug, you need to add your name-realm to dev
--- Go to 'Interface\AddOns\KkthnxUI\Developer\Elements\Frame.lua'
--- Go to line 45 and add your name and realm as the others are added.
--- Reload your UI and add any debugging you wanna check.
+	function K:LogDebugInfo(name, time, mem)
+		info[name] = info[name] or {timeLog = {}, memLog = {}, calls = 0}
 
--- Examples
--- K.Debug("Level Thing:", K.Level)
--- K.AddForProfiling("Something", "Function Name", Function)
--- if K.inDebug then
--- 	GetBestScale()
--- end
-
-local function AddForProfiling(unit, name, ...)
-	if not K.IsDeveloper then
-		return
-	end
-
-	local gName = "KKUI_Profiling_"..unit
-	if not _G[gName] then
-		_G[gName] = {}
-	end
-	_G[gName][name] = ...
-end
-
-local function Debug(...)
-	if not K.IsDeveloper then
-		return
-	end
-
-	if DLAPI then
-		local msg = ""
-		for i = 1, select("#", ...) do
-			local arg = select(i, ...)
-			msg = msg..tostring(arg).." "
+		if #info[name].timeLog > 1000 then
+			table.remove(info[name].timeLog, 1)
 		end
-		DLAPI.DebugLog("KkthnxUI", "%s", msg)
-	end
-end
 
-local function Trace()
-	if not K.IsDeveloper then
-		return
-	end
+		table.insert(info[name].timeLog, time)
 
-	if DLAPI then
-		DLAPI.DebugLog("KkthnxUITrace", "%s", "------------------------- Trace -------------------------")
-		for i, v in ipairs({("\n"):split(debugstack(2))}) do
-			if v ~= "" then
-				DLAPI.DebugLog("KkthnxUITrace", "%d: %s", i, v)
-			end
+		if #info[name].memLog > 1000 then
+			table.remove(info[name].memLog, 1)
 		end
-		DLAPI.DebugLog("KkthnxUITrace", "%s", "---------------------------------------------------------")
+
+		table.insert(info[name].memLog, mem)
+
+		info[name].calls = info[name].calls + 1
+
+		K.Print("|cffffd200" .. name .. "|r")
+		K.Print("time:", info[name].timeLog[#info[name].timeLog])
+		K.Print("mem:", info[name].memLog[#info[name].memLog])
+		K.Print("calls:", info[name].calls)
 	end
+
+	K.isProfiling = true
 end
 
-local function DebugOff()
-	return
-end
-
-local function AddForProfilingOff()
-	return
-end
-
-local function TraceOff()
-	return
-end
-
-K.inDebug = nil
-if DLAPI then
-	K.Debug = Debug
-	K.Trace = Trace
-	K.inDebug = K.IsDeveloper and true or false
-	SetCVar("fstack_preferParentKeys", 0)
-	Debug("debug log initialized")
-else
-	K.Debug = DebugOff
-	K.Trace = TraceOff
-	K.inDebug = false
-end
-
-if Profiler then
-	K.AddForProfiling = AddForProfiling
-else
-	K.AddForProfiling = AddForProfilingOff
-end
-
-_G[AddOnName] = Engine
+_G.KkthnxUI = Engine

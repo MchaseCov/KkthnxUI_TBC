@@ -1,4 +1,4 @@
-local K = unpack(select(2, ...))
+local K = unpack(KkthnxUI)
 local Module = K:GetModule("Bags")
 
 -- This Is A Personal File. For Kkthnx only :D
