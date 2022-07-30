@@ -566,7 +566,7 @@ local DataText = function(self)
 	Window:CreateColorSelection("DataText", "IconColor", L["Color The Icons"]) -- Needs Locale
 
 	Window:CreateSection(L["Text"])
-	Window:CreateSwitch("DataText", "HideText", L["Only Show Icon & Hide Text"])
+	Window:CreateSwitch("DataText", "HideText", L["Hide Icon Text"])
 end
 
 local General = function(self)
