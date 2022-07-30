@@ -7,6 +7,5 @@ function Module:OnEnable()
 	self:CreateAlertFrames()
 	self:CreateColorPicker()
 	self:CreateMirrorBars()
-	self:CreateNoBlizzardTutorials()
 	self:CreateRaidUtility()
 end
