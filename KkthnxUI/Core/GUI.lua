@@ -27,8 +27,8 @@ end
 local Font = C["Media"].Fonts.KkthnxUIFont
 local Texture = C["Media"].Statusbars.KkthnxUIStatusbar
 -- local Blank = C["Media"].Textures.BlankTexture
-local ArrowUp = C["Media"].Textures.ArrowTexture
-local ArrowDown = C["Media"].Textures.ArrowTexture
+local ArrowUp = "Interface\\Buttons\\Arrow-Up-Down"
+local ArrowDown = "Interface\\Buttons\\Arrow-Down-Down"
 
 local DeathKnightIconColor = "|TInterface\\WorldStateFrame\\ICONS-CLASSES:14:14:0:0:256:256:64:128:128:196|t".."|CFFC41F3B"
 local DemonHunterIconColor = "".."|CFFA330C9"
@@ -103,7 +103,6 @@ local CreditLines = {
 	"Alza",
 	ShamanIconColor.."Azilroka",
 	"|cff00c0faBenik|r",
-	WarlockIconColor.."Bitflipped",
 	"Blazeflack",
 	"Caellian",
 	"Caith",
@@ -136,7 +135,6 @@ local CreditLines = {
 	"Tulla",
 	"Tuller",
 	"oUF Team",
-	PaladinIconColor.."Yoni"
 }
 
 local GUI = CreateFrame("Frame", "KKUI_GUI", UIParent)
@@ -1136,16 +1134,15 @@ local CreateDropdown = function(self, group, option, text, custom, tooltip, hook
 
 	Dropdown.Button.ArrowDown = Dropdown.ArrowAnchor:CreateTexture(nil, "OVERLAY")
 	Dropdown.Button.ArrowDown:SetSize(16, 16)
-	Dropdown.Button.ArrowDown:SetPoint("CENTER", Dropdown.ArrowAnchor, 0, 0)
-	Dropdown.Button.ArrowDown:SetTexture(ArrowDown)
+	Dropdown.Button.ArrowDown:SetPoint("CENTER", Dropdown.ArrowAnchor)
+	Dropdown.Button.ArrowDown:SetTexture(C["Media"].Textures.ArrowTexture)
 	Dropdown.Button.ArrowDown:SetRotation(rad(180))
-	Dropdown.Button.ArrowDown:SetVertexColor(0.85, 0.77, 0.36)
 
 	Dropdown.Button.ArrowUp = Dropdown.ArrowAnchor:CreateTexture(nil, "OVERLAY")
 	Dropdown.Button.ArrowUp:SetSize(16, 16)
-	Dropdown.Button.ArrowUp:SetPoint("CENTER", Dropdown.ArrowAnchor, 0, 0)
-	Dropdown.Button.ArrowUp:SetTexture(ArrowUp)
-	Dropdown.Button.ArrowUp:SetVertexColor(0.85, 0.77, 0.36)
+	Dropdown.Button.ArrowUp:SetPoint("CENTER", Dropdown.ArrowAnchor)
+	Dropdown.Button.ArrowUp:SetTexture(C["Media"].Textures.ArrowTexture)
+	Dropdown.Button.ArrowUp:SetRotation(rad(0))
 	Dropdown.Button.ArrowUp:SetAlpha(0)
 
 	Dropdown.Button.ArrowDown.Fade = CreateAnimationGroup(Dropdown.Button.ArrowDown):CreateAnimation("Fade")
@@ -1768,7 +1765,7 @@ local function CreateContactEditBox(parent, width, height)
 	eb:SetSize(width, height)
 	eb:SetAutoFocus(false)
 	eb:SetTextInsets(5, 5, 0, 0)
-	eb:FontTemplate(nil, nil, "")
+	eb:SetFontObject(KkthnxUIFont)
 
 	eb.bg = CreateFrame("Frame", nil, eb)
 	eb.bg:SetAllPoints()
@@ -1818,10 +1815,10 @@ local AddContactFrame = function()
 	frame:CreateBorder()
 
 	local frameLogo = frame:CreateTexture(nil, "OVERLAY")
-	frameLogo:SetSize(512, 256)
+	frameLogo:SetSize(256, 128)
 	frameLogo:SetBlendMode("ADD")
 	frameLogo:SetAlpha(0.07)
-	frameLogo:SetTexture(C["Media"].Textures.LogoTexture)
+	frameLogo:SetTexture(C["Media"].Textures.LogoSmallTexture)
 	frameLogo:SetPoint("CENTER", frame, "CENTER", 0, 0)
 
 	K.CreateFontString(frame, 16, "Contact Me", "", true, "TOP", 0, -10)
@@ -1837,7 +1834,7 @@ local AddContactFrame = function()
 	CreateContactBox(frame, "|CFFee653aCurse|r", "https://www.curseforge.com/members/kkthnxtv", 1)
 	CreateContactBox(frame, "|CFF666aa7WowInterface|r", "https://www.wowinterface.com/forums/member.php?action=getinfo&userid=303422", 2)
 	CreateContactBox(frame, "|CFFf6f8faGitHub|r", "https://github.com/Kkthnx-Wow/KkthnxUI", 3)
-	CreateContactBox(frame, "|CFF7289DADiscord|r", "https://discord.gg/YUmxqQm", 4)
+	CreateContactBox(frame, "|CFF7289DADiscord|r", "https://discord.gg/Rc9wcK9cAB", 4)
 
 	local back = CreateFrame("Button", nil, frame)
 	back:SetSize(120, 20)
