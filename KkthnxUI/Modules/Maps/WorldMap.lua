@@ -92,7 +92,7 @@ local function CreateMapCoords()
 
 	-- Create cursor coordinates frame
 	cursorCoords = WorldMapFrame.ScrollContainer:CreateFontString(nil, "OVERLAY")
-	cursorCoords:FontTemplate(nil, 13, "OUTLINE")
+	cursorCoords:SetFontObject(KkthnxUIFont, nil, 13, "OUTLINE")
 	cursorCoords:SetSize(200, 16)
 	cursorCoords:SetParent(coordsFrame)
 	cursorCoords:ClearAllPoints()
@@ -101,7 +101,7 @@ local function CreateMapCoords()
 
 	-- Create player coordinates frame
 	playerCoords = WorldMapFrame.ScrollContainer:CreateFontString(nil, "OVERLAY")
-	playerCoords:FontTemplate(nil, 13, "OUTLINE")
+	playerCoords:SetFontObject(KkthnxUIFont, nil, 13, "OUTLINE")
 	playerCoords:SetSize(200, 16)
 	playerCoords:SetParent(coordsFrame)
 	playerCoords:ClearAllPoints()

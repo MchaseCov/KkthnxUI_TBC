@@ -152,7 +152,7 @@ local function CreateRollButton(parent, ntex, ptex, htex, rolltype, tiptext, ...
 	f:SetMotionScriptsWhileDisabled(true)
 
 	local txt = f:CreateFontString(nil, nil)
-	txt:FontTemplate(nil, nil, "OUTLINE")
+	txt:SetFontObject(KkthnxUIFont, nil, nil, "OUTLINE")
 	txt:SetPoint("CENTER", 0, rolltype == 2 and 1 or rolltype == 0 and -1.2 or 0)
 
 	return f, txt
@@ -185,7 +185,7 @@ function Module:CreateRollFrame()
 
 	button.stack = button:CreateFontString(nil, 'OVERLAY')
 	button.stack:SetPoint('BOTTOMRIGHT', -1, 1)
-	button.stack:FontTemplate(nil, nil, 'OUTLINE')
+	button.stack:SetFontObject(KkthnxUIFont, nil, nil, 'OUTLINE')
 
 	local tfade = frame:CreateTexture(nil, "BORDER")
 	tfade:SetPoint("TOPLEFT", frame, "TOPLEFT", 4, 0)
@@ -217,11 +217,11 @@ function Module:CreateRollFrame()
 
 	local bind = frame:CreateFontString()
 	bind:SetPoint("LEFT", pass, "RIGHT", 2, 1)
-	bind:FontTemplate(nil, nil, "OUTLINE")
+	bind:SetFontObject(KkthnxUIFont, nil, nil, "OUTLINE")
 	frame.fsbind = bind
 
 	local loot = frame:CreateFontString(nil, "ARTWORK")
-	loot:FontTemplate(nil, nil, "OUTLINE")
+	loot:SetFontObject(KkthnxUIFont, nil, nil, "OUTLINE")
 	loot:SetPoint("LEFT", bind, "RIGHT", 0, 0)
 	loot:SetPoint("RIGHT", frame, "RIGHT", -4, 0)
 	loot:SetSize(200, 10)

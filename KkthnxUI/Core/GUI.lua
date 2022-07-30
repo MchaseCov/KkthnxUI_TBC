@@ -267,6 +267,7 @@ end
 
 -- Sections
 local CreateSection = function(self, text)
+  text = text or ""
 	local Anchor = CreateFrame("Frame", nil, self)
 	Anchor:SetSize(WidgetListWidth - (Spacing * 2), WidgetHeight)
 	Anchor.IsSection = true

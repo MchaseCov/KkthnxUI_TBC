@@ -135,7 +135,7 @@ function Module:CreateVoiceActivity()
 		chatHead.Portrait.texture:SetAllPoints(chatHead.Portrait)
 
 		chatHead.Name = chatHead:CreateFontString(nil, "OVERLAY")
-		chatHead.Name:FontTemplate(nil, 14)
+		chatHead.Name:SetFontObject(KkthnxUIFont, nil, 14)
 		chatHead.Name:SetPoint("LEFT", chatHead.Portrait, "RIGHT", 6, 0)
 
 		chatHead.StatusBar = CreateFrame("StatusBar", nil, chatHead)
