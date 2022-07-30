@@ -2,28 +2,26 @@ local K, C, L = unpack(KkthnxUI)
 local Module = K:GetModule("Tooltip")
 
 local _G = _G
-local math_floor = _G.math.floor
 local select = _G.select
-local string_find = _G.string.find
 local string_format = _G.string.format
-local string_gsub = _G.string.gsub
 local string_match = _G.string.match
 local tonumber = _G.tonumber
 
 local BAGSLOT = _G.BAGSLOT
 local BANK = _G.BANK
 local CURRENCY = _G.CURRENCY
+local C_CurrencyInfo_GetCurrencyListLink = _G.C_CurrencyInfo.GetCurrencyListLink
 local GetItemCount = _G.GetItemCount
 local GetItemInfo = _G.GetItemInfo
 local GetMouseFocus = _G.GetMouseFocus
+local GetItemInfoFromHyperlink = _G.GetItemInfoFromHyperlink
 local GetUnitName = _G.GetUnitName
+local IsPlayerSpell = _G.IsPlayerSpell
 local TALENT = _G.TALENT
 local UnitAura = _G.UnitAura
 local hooksecurefunc = _G.hooksecurefunc
 
-local SELL_PRICE_TEXT = string_format("|cffffffff%s%s%%s|r", SELL_PRICE, HEADER_COLON)
-local ITEM_LEVEL_STR = string_gsub(ITEM_LEVEL_PLUS, "%+", "")
-ITEM_LEVEL_STR = string_format("|cffffd100%s|r|n%%s", ITEM_LEVEL_STR)
+local LEARNT_STRING = "|cffff0000"..ALREADY_LEARNED.."|r"
 
 local types = {
 	spell = SPELLS.."ID:",
@@ -33,62 +31,6 @@ local types = {
 	achievement = ACHIEVEMENTS.."ID:",
 	currency = CURRENCY.."ID:",
 	azerite = L["Trait"].."ID:",
-}
-
-local function createIcon(index)
-	return string_format(" |TInterface\\MoneyFrame\\UI-%sIcon:14:14:0:0|t", index)
-end
-
-local function setupMoneyString(money)
-	local g, s, c = math_floor(money / 1e4), math_floor(money / 100) % 100, money % 100
-	local str = ""
-	if g > 0 then
-		str = str.." "..g..createIcon("Gold")
-	end
-
-	if s > 0 then
-		str = str.." "..s..createIcon("Silver")
-	end
-
-	if c > 0 then
-		str = str.." "..c..createIcon("Copper")
-	end
-
-	return str
-end
-
-function Module:UpdateItemSellPrice()
-	local frame = GetMouseFocus()
-	if frame and frame.GetName then
-		if frame:IsForbidden() then -- Forbidden on blizz store
-			return
-		end
-
-		local name = frame:GetName()
-		if not MerchantFrame:IsShown() or name and (string_find(name, "Character") or string_find(name, "TradeSkill")) then
-			local link = select(2, self:GetItem())
-			if link then
-				local price = select(11, GetItemInfo(link))
-				if price and price > 0 then
-					local object = frame:GetObjectType()
-					local count
-					if object == "Button" then -- ContainerFrameItem, QuestInfoItem, PaperDollItem
-						count = frame.count
-					elseif object == "CheckButton" then -- MailItemButton or ActionButton
-						count = frame.count or frame.Count:GetText()
-					end
-
-					local cost = (tonumber(count) or 1) * price
-					self:AddLine(string_format(SELL_PRICE_TEXT, setupMoneyString(cost)))
-				end
-			end
-		end
-	end
-end
-
-local iLvlItemClassIDs = {
-	[LE_ITEM_CLASS_ARMOR] = true,
-	[LE_ITEM_CLASS_WEAPON] = true,
 }
 
 function Module:AddLineForID(id, linkType, noadd)
@@ -104,8 +46,8 @@ function Module:AddLineForID(id, linkType, noadd)
 		end
 	end
 
-	if linkType == types.item then
-		Module.UpdateItemSellPrice(self)
+	if linkType == types.spell and IsPlayerSpell(id) and C_MountJournal_GetMountFromSpell(id) then
+		self:AddLine(LEARNT_STRING)
 	end
 
 	if not noadd then
@@ -115,7 +57,7 @@ function Module:AddLineForID(id, linkType, noadd)
 	if linkType == types.item then
 		local bagCount = GetItemCount(id)
 		local bankCount = GetItemCount(id, true) - bagCount
-		local name, _, _, itemLevel, _, _, _, itemStackCount, _, _, _, classID = GetItemInfo(id)
+		local itemStackCount = select(8, GetItemInfo(id))
 		if bankCount > 0 then
 			self:AddDoubleLine(BAGSLOT.."/"..BANK..":", K.InfoColor..bagCount.."/"..bankCount)
 		elseif bagCount > 0 then
@@ -124,18 +66,6 @@ function Module:AddLineForID(id, linkType, noadd)
 
 		if itemStackCount and itemStackCount > 1 then
 			self:AddDoubleLine(L["Stack Cap"]..":", K.InfoColor..itemStackCount)
-		end
-
-		-- iLvl info like retail
-		if name and itemLevel and itemLevel > 1 and iLvlItemClassIDs[classID] then
-			local tipName = self:GetName()
-			local index = string_find(tipName, "Shopping") and 3 or 2
-			local line = _G[tipName.."TextLeft"..index]
-			local lineText = line and line:GetText()
-			if lineText then
-				line:SetFormattedText(ITEM_LEVEL_STR, itemLevel, lineText)
-				line:SetJustifyH("LEFT")
-			end
 		end
 	end
 
@@ -167,7 +97,7 @@ end
 function Module:SetItemID()
 	local link = select(2, self:GetItem())
 	if link then
-		local id = string_match(link, "item:(%d+):")
+		local id = GetItemInfoFromHyperlink(link)
 		local keystone = string_match(link, "|Hkeystone:([0-9]+):")
 		if keystone then
 			id = tonumber(keystone)
@@ -222,12 +152,46 @@ function Module:CreateTooltipID()
 
 	-- Items
 	GameTooltip:HookScript("OnTooltipSetItem", Module.SetItemID)
+	GameTooltipTooltip:HookScript("OnTooltipSetItem", Module.SetItemID)
 	ItemRefTooltip:HookScript("OnTooltipSetItem", Module.SetItemID)
 	ShoppingTooltip1:HookScript("OnTooltipSetItem", Module.SetItemID)
 	ShoppingTooltip2:HookScript("OnTooltipSetItem", Module.SetItemID)
 	ItemRefShoppingTooltip1:HookScript("OnTooltipSetItem", Module.SetItemID)
 	ItemRefShoppingTooltip2:HookScript("OnTooltipSetItem", Module.SetItemID)
 
+	hooksecurefunc(GameTooltip, "SetToyByItemID", function(self, id)
+		if id then
+			Module.AddLineForID(self, id, types.item)
+		end
+	end)
+
+	-- Currencies
+	hooksecurefunc(GameTooltip, "SetCurrencyToken", function(self, index)
+		local id = tonumber(string_match(C_CurrencyInfo_GetCurrencyListLink(index), "currency:(%d+)"))
+		if id then
+			Module.AddLineForID(self, id, types.currency)
+		end
+	end)
+
+	hooksecurefunc(GameTooltip, "SetCurrencyByID", function(self, id)
+		if id then
+			Module.AddLineForID(self, id, types.currency)
+		end
+	end)
+
+	hooksecurefunc(GameTooltip, "SetCurrencyTokenByID", function(self, id)
+		if id then
+			Module.AddLineForID(self, id, types.currency)
+		end
+	end)
+
 	-- Spell caster
 	hooksecurefunc(GameTooltip, "SetUnitAura", Module.UpdateSpellCaster)
+
+	-- Quests
+	hooksecurefunc("QuestMapLogTitleButton_OnEnter", function(self)
+		if self.questID then
+			Module.AddLineForID(GameTooltip, self.questID, types.quest)
+		end
+	end)
 end

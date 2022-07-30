@@ -705,7 +705,7 @@ function Module:OnEnable()
 	self:CreateInventoryBar()
 	self:CreateAutoRepair()
 	self:CreateAutoSell()
-	self:CreateAutoDelete()
+	--self:CreateAutoDelete()
 
 	if not C["Inventory"].Enable then
 		return
@@ -1178,7 +1178,7 @@ function Module:OnEnable()
 	end
 
 	-- Sort order
-	SetSortBagsRightToLeft(C["Inventory"].BagSortMode.Value == 1)
+	--SetSortBagsRightToLeft(C["Inventory"].BagSortMode.Value == 1)
 	SetInsertItemsLeftToRight(false)
 
 	-- Init

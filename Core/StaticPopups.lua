@@ -7,13 +7,6 @@ local CANCEL = _G.CANCEL
 local ReloadUI = _G.ReloadUI
 local StaticPopupDialogs = _G.StaticPopupDialogs
 
-StaticPopupDialogs["KKUI_CONFIRM_LOOT_DISTRIBUTION"] = {
-	text = CONFIRM_LOOT_DISTRIBUTION,
-	button1 = YES,
-	button2 = NO,
-	hideOnEscape = 1,
-}
-
 StaticPopupDialogs["KKUI_RESET_DATA"] = {
 	text = "Are you sure you want to reset all KkthnxUI Data?",
 	button1 = ACCEPT,
@@ -47,14 +40,14 @@ StaticPopupDialogs["KKUI_RESET_CHAT"] = {
 
 StaticPopupDialogs["QUEST_CHECK_ID"] = {
 	text = "Check Quest ID",
-	button1 = "Check",
+	button1 = "Scan",
 
 	OnAccept = function(self)
 		if not tonumber(self.editBox:GetText()) then
 			return
 		end
 
-		SlashCmdList["KKUI_CHECKQUESTSTATUS"](self.editBox:GetText())
+		K.CheckQuestStatus(self.editBox:GetText())
 	end,
 
 	OnShow = function(self)
@@ -132,18 +125,6 @@ StaticPopupDialogs["CONFIRM_LOOT_DISTRIBUTION"] = {
 	text = CONFIRM_LOOT_DISTRIBUTION,
 	button1 = YES,
 	button2 = NO,
-	timeout = 0,
-	hideOnEscape = 1,
-	preferredIndex = 3,
-}
-
-StaticPopupDialogs["KKUI_ABANDON_QUESTS"] = {
-	text = "|cFFFF0000STOP!!!|r|n|nYou are about to abandon all your quests in your questlog!|n|n Are you sure you want to continue?",
-	button1 = YES,
-	button2 = NO,
-	OnAccept = function()
-		SlashCmdList["KKUI_ABANDONQUESTS"]()
-	end,
 	timeout = 0,
 	hideOnEscape = 1,
 	preferredIndex = 3,

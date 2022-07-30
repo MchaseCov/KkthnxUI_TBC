@@ -17,7 +17,10 @@ local unpack = _G.unpack
 
 local C_Map_GetWorldPosFromMapPos = _G.C_Map.GetWorldPosFromMapPos
 local CreateVector2D = _G.CreateVector2D
+local ENCHANTED_TOOLTIP_LINE = _G.ENCHANTED_TOOLTIP_LINE
 local GameTooltip = _G.GameTooltip
+--local GetSpecialization = _G.GetSpecialization
+--local GetSpecializationInfo = _G.GetSpecializationInfo
 local GetTime = _G.GetTime
 local ITEM_LEVEL = _G.ITEM_LEVEL
 local IsEveryoneAssistant = _G.IsEveryoneAssistant
@@ -32,7 +35,10 @@ local UnitIsTapDenied = _G.UnitIsTapDenied
 local UnitReaction = _G.UnitReaction
 
 local iLvlDB = {}
-local itemLevelString = string_gsub(ITEM_LEVEL, "%%d", "")
+local enchantString = string_gsub(ENCHANTED_TOOLTIP_LINE, "%%s", "(.+)")
+--local essenceDescription = _G.GetSpellDescription(277253)
+--local essenceTextureID = 2975691
+local itemLevelString = "^"..string_gsub(ITEM_LEVEL, "%%d", "")
 
 local mapRects = {}
 local tempVec2D = CreateVector2D(0, 0)
@@ -135,6 +141,10 @@ function K.CreateGF(self, w, h, o, r, g, b, a1, a2)
 end
 
 function K.CreateFontString(self, size, text, textstyle, classcolor, anchor, x, y)
+	if not self then
+		return
+	end
+
 	local fs = self:CreateFontString(nil, "OVERLAY")
 
 	if textstyle == " " or textstyle == "" or textstyle == nil then
@@ -151,6 +161,7 @@ function K.CreateFontString(self, size, text, textstyle, classcolor, anchor, x, 
 		fs:SetTextColor(K.r, K.g, K.b)
 	elseif classcolor == "system" then
 		fs:SetTextColor(1, .8, 0)
+	elseif classcolor == "system" then
 	end
 
 	if anchor and x and y then
@@ -173,6 +184,7 @@ end
 
 function K.UnitColor(unit)
 	local r, g, b = 1, 1, 1
+
 	if UnitIsPlayer(unit) then
 		local class = select(2, UnitClass(unit))
 		if class then
@@ -185,6 +197,8 @@ function K.UnitColor(unit)
 		if reaction then
 			local color = K.Colors.reaction[reaction]
 			r, g, b = color[1], color[2], color[3]
+		else
+			r, g, b = UnitSelectionColor(unit, true)
 		end
 	end
 
@@ -231,6 +245,18 @@ function K.InspectItemTextures()
 	return K.ScanTooltip.gems
 end
 
+function K.InspectItemInfo(text, slotInfo)
+	local itemLevel = string_find(text, itemLevelString) and string_match(text, "(%d+)%)?$")
+	if itemLevel then
+		slotInfo.iLvl = tonumber(itemLevel)
+	end
+
+	local enchant = string_match(text, enchantString)
+	if enchant then
+		slotInfo.enchantText = enchant
+	end
+end
+
 function K.GetItemLevel(link, arg1, arg2, fullScan)
 	if fullScan then
 		K.ScanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
@@ -244,6 +270,14 @@ function K.GetItemLevel(link, arg1, arg2, fullScan)
 
 		local slotInfo = K.ScanTooltip.slotInfo
 		slotInfo.gems = K.InspectItemTextures()
+
+		for i = 1, K.ScanTooltip:NumLines() do
+			local line = _G[K.ScanTooltip:GetName().."TextLeft"..i]
+			if line then
+				local text = line:GetText() or ""
+				K.InspectItemInfo(text, slotInfo)
+			end
+		end
 
 		return slotInfo
 	else
@@ -299,7 +333,6 @@ function K.GetGroupUnit(unit)
 		end
 	end
 end
-
 
 -- Chat channel check
 function K.CheckChat(useRaidWarning)
@@ -362,7 +395,7 @@ local function tooltipOnEnter(self)
 		elseif self.color == "system" then
 			r, g, b = 1, .8, 0
 		elseif self.color == "info" then
-			r, g, b = .6, .8, 1
+			r, g, b = 0.5, 0.7, 1
 		end
 
 		GameTooltip:AddLine(self.text, r, g, b, 1)
@@ -510,6 +543,10 @@ function K.CooldownOnUpdate(self, elapsed, raw)
 end
 
 function K.GetPlayerMapPos(mapID)
+	if not mapID then
+		return
+	end
+
 	tempVec2D.x, tempVec2D.y = _G.UnitPosition("player")
 	if not tempVec2D.x then
 		return
@@ -536,26 +573,19 @@ end
 -- Money text formatting, code taken from Scrooge by thelibrarian (http://www.wowace.com/addons/scrooge)
 function K.FormatMoney(amount)
 	local coppername = "|cffeda55fc|r"
-	local silvername = "|cffc7c7cfs|r"
 	local goldname = "|cffffd700g|r"
+	local silvername = "|cffc7c7cfs|r"
 
 	local value = math_abs(amount)
 	local gold = math_floor(value / 10000)
 	local silver = math_floor(mod(value / 100, 100))
 	local copper = math_floor(mod(value, 100))
 
-	local str = ""
 	if gold > 0 then
-		str = string_format("%d%s%s", gold, goldname, (silver > 0 or copper > 0) and " " or "")
+		return string_format("%s%s %02d%s %02d%s", BreakUpLargeNumbers(gold), goldname, silver, silvername, copper, coppername)
+	elseif silver > 0 then
+		return string_format("%d%s %02d%s", silver, silvername, copper, coppername)
+	else
+		return string_format("%d%s", copper, coppername)
 	end
-
-	if silver > 0 then
-		str = string_format("%s%d%s%s", str, silver, silvername, copper > 0 and " " or "")
-	end
-
-	if copper > 0 or value == 0 then
-		str = string_format("%s%d%s", str, copper, coppername)
-	end
-
-	return str
 end

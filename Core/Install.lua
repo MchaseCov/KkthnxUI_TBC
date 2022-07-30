@@ -5,7 +5,6 @@ local Module = K:NewModule("Installer")
 -- Edited: KkthnxUI (Kkthnx)
 
 local _G = _G
-local table_wipe = _G.table.wipe
 
 local APPLY = _G.APPLY
 local CHAT = _G.CHAT
@@ -24,7 +23,6 @@ local FCF_SetLocked = _G.FCF_SetLocked
 local FCF_SetWindowName = _G.FCF_SetWindowName
 local GENERAL = _G.GENERAL
 local InCombatLockdown = _G.InCombatLockdown
-local IsAddOnLoaded = _G.IsAddOnLoaded
 local PlaySound = _G.PlaySound
 local SETTINGS = _G.SETTINGS
 local SetCVar = _G.SetCVar
@@ -54,29 +52,57 @@ end
 
 -- Tuitorial
 function Module:ForceDefaultCVars()
-	SetCVar("autoLootDefault", 1)
-	SetCVar("alwaysCompareItems", 1)
-	SetCVar("autoSelfCast", 1)
-	SetCVar("lootUnderMouse", 1)
-	SetCVar("screenshotQuality", 10)
-	SetCVar("showTutorials", 0)
 	SetCVar("ActionButtonUseKeyDown", 1)
-	SetCVar("lockActionBars", 1)
+	SetCVar("RotateMinimap", 0)
+	SetCVar("UberTooltips", 1)
+	SetCVar("alwaysCompareItems", 1)
+	SetCVar("autoLootDefault", 1)
+	SetCVar("autoOpenLootHistory", 0)
+	SetCVar("autoQuestProgress", 1)
 	SetCVar("autoQuestWatch", 1)
-	SetCVar("overrideArchive", 0)
+	SetCVar("autoSelfCast", 1)
+	SetCVar("buffDurations", 1)
 	SetCVar("cameraDistanceMaxZoomFactor", 2.6)
+	SetCVar("chatMouseScroll", 1)
+	SetCVar("chatStyle", "classic")
+	SetCVar("floatingCombatTextCombatDamage", 1)
+	SetCVar("floatingCombatTextCombatDamageDirectionalOffset", 10)
+	SetCVar("floatingCombatTextCombatDamageDirectionalScale", 0)
+	SetCVar("floatingCombatTextCombatHealing", 1)
+	SetCVar("floatingCombatTextFloatMode", 1)
+	SetCVar("fstack_preferParentKeys", 0)
+	SetCVar("lockActionBars", 1)
+	SetCVar("lootUnderMouse", 1)
+	SetCVar("overrideArchive", 0)
+	SetCVar("predictedHealth", 1)
+	SetCVar("screenshotQuality", 10)
+	SetCVar("showNPETutorials", 0)
+	SetCVar("showQuestTrackingTooltips", 1)
+	SetCVar("showTutorials", 0)
+	SetCVar("spamFilter", 0)
+	SetCVar("speechToText", 0)
+	SetCVar("statusTextDisplay", "BOTH")
+	SetCVar("taintLog", 0)
+	SetCVar("textToSpeech", 0)
+	SetCVar("threatWarning", 3)
+	SetCVar("whisperMode", "inline")
+	SetCVar("wholeChatWindowClickable", 0)
+	-- SetCVar("remoteTextToSpeech", 1) -- Set to 1 then 0 so we can close the chat tab
+	-- SetCVar("remoteTextToSpeech", 0)
+
 	SetActionBarToggles(1, 1, 1, 1)
 
 	if not InCombatLockdown() then
+		SetCVar("alwaysShowActionBars", 1)
 		SetCVar("nameplateMotion", 1)
 		SetCVar("nameplateShowAll", 1)
 		SetCVar("nameplateShowEnemies", 1)
-		SetCVar("alwaysShowActionBars", 1)
 	end
 
 	if K.isDeveloper then
+		SetCVar("SpellQueueWindow", K.Realm == "Oribos" and 120 or 25)
+		SetCVar("WorldTextScale", 1)
 		SetCVar("ffxGlow", 0)
-		SetCVar("SpellQueueWindow", 17)
 	end
 end
 
@@ -99,20 +125,29 @@ local function ForceRaidFrame()
 end
 
 function Module:ForceChatSettings()
-	if KkthnxUIDB.Settings[K.Realm][K.Name].Chat then
-		if KkthnxUIDB.Settings[K.Realm][K.Name].Chat.Width ~= C["Chat"].Width then
-			KkthnxUIDB.Settings[K.Realm][K.Name].Chat.Width = C["Chat"].Width
+	FCF_ResetChatWindows()
+
+	for _, name in ipairs(_G.CHAT_FRAMES) do
+		local frame = _G[name]
+		local id = frame:GetID()
+
+		if id == 1 then
+			frame:ClearAllPoints()
+			frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 7, 11)
+			frame:SetWidth(C["Chat"].Width)
+			frame:SetHeight(C["Chat"].Height)
+		elseif id == 3 then
+			VoiceTranscriptionFrame_UpdateVisibility(frame)
+			VoiceTranscriptionFrame_UpdateVoiceTab(frame)
+			VoiceTranscriptionFrame_UpdateEditBox(frame)
 		end
 
-		if KkthnxUIDB.Settings[K.Realm][K.Name].Chat.Height ~= C["Chat"].Height then
-			KkthnxUIDB.Settings[K.Realm][K.Name].Chat.Height = C["Chat"].Height
-		end
+		FCF_SetChatWindowFontSize(nil, frame, 12)
+		FCF_SavePositionAndDimensions(frame)
+		FCF_StopDragging(frame)
 	end
 
-	K:GetModule("Chat"):UpdateChatSize()
-
 	-- General
-	FCF_ResetChatWindows()
 	FCF_SetLocked(ChatFrame1, 1)
 	FCF_SetWindowName(ChatFrame1, L["General"])
 	ChatFrame1:Show()
@@ -125,61 +160,56 @@ function Module:ForceChatSettings()
 
 	-- Whispers
 	FCF_OpenNewWindow(L["Whisper"])
-	FCF_SetLocked(ChatFrame3, 1)
-	FCF_DockFrame(ChatFrame3)
-	ChatFrame3:Show()
-
-	-- Trade
-	FCF_OpenNewWindow(L["Trade"])
 	FCF_SetLocked(ChatFrame4, 1)
 	FCF_DockFrame(ChatFrame4)
 	ChatFrame4:Show()
 
-	-- Loot
-	FCF_OpenNewWindow(L["Loot"])
+	-- Trade
+	FCF_OpenNewWindow(L["Trade"])
 	FCF_SetLocked(ChatFrame5, 1)
 	FCF_DockFrame(ChatFrame5)
 	ChatFrame5:Show()
 
-	for _, name in ipairs(_G.CHAT_FRAMES) do
-		local frame = _G[name]
-		FCF_SetChatWindowFontSize(nil, frame, 12)
-	end
+	-- Loot
+	FCF_OpenNewWindow(L["Loot"])
+	FCF_SetLocked(ChatFrame6, 1)
+	FCF_DockFrame(ChatFrame6)
+	ChatFrame6:Show()
 
-	-- ChatFrame1
+	-- ChatFrame 1
 	ChatFrame_RemoveChannel(ChatFrame1, TRADE)
 	ChatFrame_RemoveChannel(ChatFrame1, GENERAL)
 	ChatFrame_RemoveChannel(ChatFrame1, "GuildRecruitment")
 	ChatFrame_RemoveChannel(ChatFrame1, "LookingForGroup")
-	local chatGroup = {"SAY", "EMOTE", "YELL", "GUILD", "OFFICER", "GUILD_ACHIEVEMENT", "MONSTER_SAY", "MONSTER_EMOTE", "MONSTER_YELL", "MONSTER_WHISPER", "MONSTER_BOSS_EMOTE", "MONSTER_BOSS_WHISPER", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "BG_HORDE", "BG_ALLIANCE", "BG_NEUTRAL", "SYSTEM", "ERRORS", "AFK", "DND", "IGNORED", "ACHIEVEMENT"}
+	local chatGroup = {"SYSTEM", "CHANNEL", "SAY", "EMOTE", "YELL", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "MONSTER_SAY", "MONSTER_YELL", "MONSTER_EMOTE", "MONSTER_WHISPER", "MONSTER_BOSS_EMOTE", "MONSTER_BOSS_WHISPER", "ERRORS", "AFK", "DND", "IGNORED", "BG_HORDE", "BG_ALLIANCE", "BG_NEUTRAL", "ACHIEVEMENT", "GUILD_ACHIEVEMENT", "BN_INLINE_TOAST_ALERT"}
 	ChatFrame_RemoveAllMessageGroups(ChatFrame1)
 	for _, v in ipairs(chatGroup) do
 		ChatFrame_AddMessageGroup(_G.ChatFrame1, v)
 	end
 
-	-- ChatFrame3
+	-- ChatFrame 4
 	chatGroup = {"WHISPER", "BN_WHISPER", "BN_CONVERSATION"}
-	ChatFrame_RemoveAllMessageGroups(ChatFrame3)
+	ChatFrame_RemoveAllMessageGroups(ChatFrame4)
 	for _, v in ipairs(chatGroup) do
-		ChatFrame_AddMessageGroup(_G.ChatFrame3, v)
+		ChatFrame_AddMessageGroup(_G.ChatFrame4, v)
 	end
 
-	-- ChatFrame4
-	ChatFrame_RemoveAllMessageGroups(ChatFrame4)
-	ChatFrame_AddChannel(ChatFrame4, TRADE)
-	ChatFrame_AddChannel(ChatFrame4, GENERAL)
-	ChatFrame_AddChannel(ChatFrame4, "LookingForGroup")
-
-	chatGroup = {"COMBAT_XP_GAIN", "COMBAT_HONOR_GAIN", "COMBAT_FACTION_CHANGE", "LOOT", "MONEY", "SKILL"}
+	-- ChatFrame 5
 	ChatFrame_RemoveAllMessageGroups(ChatFrame5)
+	ChatFrame_AddChannel(ChatFrame5, TRADE)
+	ChatFrame_AddChannel(ChatFrame5, GENERAL)
+	ChatFrame_AddChannel(ChatFrame5, "LookingForGroup")
+
+	chatGroup = {"COMBAT_XP_GAIN", "COMBAT_HONOR_GAIN", "COMBAT_FACTION_CHANGE", "SKILL", "LOOT", "CURRENCY", "MONEY"}
+	ChatFrame_RemoveAllMessageGroups(ChatFrame6)
 	for _, v in ipairs(chatGroup) do
-		ChatFrame_AddMessageGroup(_G.ChatFrame5, v)
+		ChatFrame_AddMessageGroup(_G.ChatFrame6, v)
 	end
 
 	-- set the chat groups names in class color to enabled for all chat groups which players names appear
-	chatGroup = {"SAY", "YELL", "GUILD", "OFFICER", "WHISPER", "WHISPER_INFORM", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER", "RAID_WARNING", "EMOTE", "CHANNEL1", "CHANNEL2", "CHANNEL3", "CHANNEL4", "CHANNEL5", "CHANNEL6", "CHANNEL7", "CHANNEL8", "CHANNEL9", "CHANNEL10", "CHANNEL11", "CHANNEL12", "CHANNEL13", "CHANNEL14", "CHANNEL15", "CHANNEL16", "CHANNEL17", "CHANNEL18", "CHANNEL19", "CHANNEL20"}
+	chatGroup = {"SAY", "EMOTE", "YELL", "WHISPER", "PARTY", "PARTY_LEADER", "RAID", "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT", "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "ACHIEVEMENT", "GUILD_ACHIEVEMENT", "COMMUNITIES_CHANNEL"}
 	for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
-		table.insert(chatGroup, 'CHANNEL'..i)
+		table.insert(chatGroup, "CHANNEL"..i)
 	end
 
 	for _, v in ipairs(chatGroup) do
@@ -190,421 +220,6 @@ function Module:ForceChatSettings()
 	ChangeChatColor("CHANNEL1", 195/255, 230/255, 232/255) -- General
 	ChangeChatColor("CHANNEL2", 232/255, 158/255, 121/255) -- Trade
 	ChangeChatColor("CHANNEL3", 232/255, 228/255, 121/255) -- Local Defense
-end
-
-local function ForceHekiliOptions()
-	if not IsAddOnLoaded("Hekili") then
-		return
-	end
-
-	local isWiped = false
-	if HekiliDB and not isWiped then
-		table.wipe(HekiliDB)
-		isWiped = true
-	end
-
-	if isWiped then
-		HekiliDB = {
-			["profiles"] = {
-				["KkthnxUI"] = {
-					["toggles"] = {
-						["potions"] = {
-							["value"] = true,
-						},
-						["interrupts"] = {
-							["value"] = true,
-							["separate"] = true,
-						},
-						["cooldowns"] = {
-							["value"] = true,
-							["override"] = true,
-						},
-						["mode"] = {
-							["aoe"] = true,
-						},
-						["defensives"] = {
-							["value"] = true,
-							["separate"] = true,
-						},
-					},
-					["displays"] = {
-						["AOE"] = {
-							["rel"] = "CENTER",
-							["delays"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["captions"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-							["y"] = -231,
-							["targets"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["keybindings"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-						},
-						["Primary"] = {
-							["rel"] = "CENTER",
-							["delays"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["captions"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-							["y"] = -286,
-							["targets"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["keybindings"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-						},
-						["Defensives"] = {
-							["rel"] = "CENTER",
-							["delays"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["captions"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-							["y"] = -48,
-							["x"] = -244,
-							["targets"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["keybindings"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-						},
-						["Interrupts"] = {
-							["rel"] = "CENTER",
-							["delays"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["captions"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-							["y"] = -48,
-							["x"] = 244,
-							["targets"] = {
-								["font"] = "KkthnxUIFont",
-								["fontSize"] = 16,
-							},
-							["keybindings"] = {
-								["fontSize"] = 16,
-								["font"] = "KkthnxUIFont",
-							},
-						},
-					},
-				},
-			},
-		}
-	end
-
-	KkthnxUIDB.Variables["HekiliRequest"] = false
-end
-
-local function ForceMaxDPSOptions()
-	if not IsAddOnLoaded("MaxDps") then
-		return
-	end
-
-	if MaxDpsOptions then
-		table_wipe(MaxDpsOptions)
-	end
-
-	MaxDpsOptions = {
-		["global"] = {
-			["texture"] = "Interface\\Cooldown\\star4",
-			["customRotations"] = {
-			},
-			["disabledInfo"] = true,
-		},
-	}
-
-	KkthnxUIDB.Variables["MaxDpsRequest"] = false
-end
-
--- DBM bars
-local function ForceDBMOptions()
-	if not IsAddOnLoaded("DBM-Core") then
-		return
-	end
-
-	if DBT_AllPersistentOptions then
-		table_wipe(DBT_AllPersistentOptions)
-	end
-
-	DBT_AllPersistentOptions = {
-		["Default"] = {
-			["DBM"] = {
-				["Scale"] = 1,
-				["HugeScale"] = 1,
-				["ExpandUpwards"] = true,
-				["ExpandUpwardsLarge"] = true,
-				["BarXOffset"] = 0,
-				["BarYOffset"] = 15,
-				["TimerPoint"] = "LEFT",
-				["TimerX"] = 122,
-				["TimerY"] = -300,
-				["Width"] = 174,
-				["Height"] = 20,
-				["HugeWidth"] = 210,
-				["HugeBarXOffset"] = 0,
-				["HugeBarYOffset"] = 15,
-				["HugeTimerPoint"] = "CENTER",
-				["HugeTimerX"] = 330,
-				["HugeTimerY"] = -42,
-				["FontSize"] = 10,
-				["StartColorR"] = 1,
-				["StartColorG"] = .7,
-				["StartColorB"] = 0,
-				["EndColorR"] = 1,
-				["EndColorG"] = 0,
-				["EndColorB"] = 0,
-				["Texture"] = C["Media"].Statusbars.KkthnxUIStatusbar,
-			},
-		},
-	}
-
-	if not _G.DBM_AllSavedOptions["Default"] then
-		_G.DBM_AllSavedOptions["Default"] = {}
-	end
-	_G.DBM_AllSavedOptions["Default"]["WarningY"] = -170
-	_G.DBM_AllSavedOptions["Default"]["WarningX"] = 0
-	_G.DBM_AllSavedOptions["Default"]["WarningFontStyle"] = "OUTLINE"
-	_G.DBM_AllSavedOptions["Default"]["SpecialWarningX"] = 0
-	_G.DBM_AllSavedOptions["Default"]["SpecialWarningY"] = -260
-	_G.DBM_AllSavedOptions["Default"]["SpecialWarningFontStyle"] = "OUTLINE"
-	_G.DBM_AllSavedOptions["Default"]["HideObjectivesFrame"] = false
-	_G.DBM_AllSavedOptions["Default"]["WarningFontSize"] = 18
-	_G.DBM_AllSavedOptions["Default"]["SpecialWarningFontSize2"] = 24
-
-	KkthnxUIDB.Variables["DBMRequest"] = false
-end
-
--- Skada
-local function ForceSkadaOptions()
-	if not IsAddOnLoaded("Skada") then
-		return
-	end
-
-	if SkadaDB then
-		table_wipe(SkadaDB)
-	end
-
-	SkadaDB = {
-		["hasUpgraded"] = true,
-		["profiles"] = {
-			["Default"] = {
-				["windows"] = {
-					{	["barheight"] = 18,
-						["classicons"] = false,
-						["barslocked"] = true,
-						["y"] = 28,
-						["x"] = -3,
-						["title"] = {
-							["color"] = {
-								["a"] = 0.3,
-								["b"] = 0,
-								["g"] = 0,
-								["r"] = 0,
-							},
-							["font"] = "",
-							["borderthickness"] = 0,
-							["fontflags"] = "OUTLINE",
-							["fontsize"] = 14,
-							["texture"] = "normTex",
-						},
-						["barfontflags"] = "OUTLINE",
-						["point"] = "BOTTOMRIGHT",
-						["mode"] = "",
-						["barwidth"] = 300,
-						["barbgcolor"] = {
-							["a"] = 0,
-							["b"] = 0,
-							["g"] = 0,
-							["r"] = 0,
-						},
-						["barfontsize"] = 14,
-						["background"] = {
-							["height"] = 180,
-							["texture"] = "None",
-							["bordercolor"] = {
-								["a"] = 0,
-							},
-						},
-						["bartexture"] = "KKUI_Statusbar",
-					}, -- [1]
-				},
-				["tooltiprows"] = 10,
-				["setstokeep"] = 30,
-				["tooltippos"] = "topleft",
-				["reset"] = {
-					["instance"] = 3,
-					["join"] = 1,
-				},
-			},
-		},
-	}
-
-	KkthnxUIDB.Variables["SkadaRequest"] = false
-end
-
-local function ForceCursorTrail()
-	if not IsAddOnLoaded("CursorTrail") then
-		return
-	end
-
-	if CursorTrail_PlayerConfig then
-		table_wipe(CursorTrail_PlayerConfig)
-	end
-
-	CursorTrail_PlayerConfig = {
-		["FadeOut"] = false,
-		["UserOfsY"] = 0,
-		["UserShowMouseLook"] = false,
-		["ModelID"] = 166492,
-		["UserAlpha"] = 0.9,
-		["UserOfsX"] = 0.1,
-		["UserScale"] = 0.4,
-		["UserShadowAlpha"] = 0,
-		["UserShowOnlyInCombat"] = false,
-		["Strata"] = "HIGH",
-	}
-
-	KkthnxUIDB.Variables["CursorTrailRequest"] = false
-end
-
--- BigWigs
-local function ForceBigwigs()
-	if not IsAddOnLoaded("BigWigs") then
-		return
-	end
-
-	if BigWigs3DB then
-		table_wipe(BigWigs3DB)
-	end
-
-	BigWigs3DB = {
-		["namespaces"] = {
-			["BigWigs_Plugins_Bars"] = {
-				["profiles"] = {
-					["Default"] = {
-						["outline"] = "OUTLINE",
-						["fontSize"] = 12,
-						["BigWigsAnchor_y"] = 336,
-						["BigWigsAnchor_x"] = 16,
-						["BigWigsAnchor_width"] = 175,
-						["growup"] = true,
-						["interceptMouse"] = false,
-						["barStyle"] = "KKUI_Statusbar",
-						["LeftButton"] = {
-							["emphasize"] = false,
-						},
-						["font"] = "KKUI_Normal",
-						["onlyInterceptOnKeypress"] = true,
-						["emphasizeMultiplier"] = 1,
-						["BigWigsEmphasizeAnchor_x"] = 810,
-						["BigWigsEmphasizeAnchor_y"] = 350,
-						["BigWigsEmphasizeAnchor_width"] = 220,
-						["emphasizeGrowup"] = true,
-					},
-				},
-			},
-			["BigWigs_Plugins_Super Emphasize"] = {
-				["profiles"] = {
-					["Default"] = {
-						["fontSize"] = 28,
-						["font"] = "KKUI_Normal",
-					},
-				},
-			},
-			["BigWigs_Plugins_Messages"] = {
-				["profiles"] = {
-					["Default"] = {
-						["fontSize"] = 18,
-						["font"] = "KKUI_Normal",
-						["BWEmphasizeCountdownMessageAnchor_x"] = 665,
-						["BWMessageAnchor_x"] = 616,
-						["BWEmphasizeCountdownMessageAnchor_y"] = 530,
-						["BWMessageAnchor_y"] = 305,
-					},
-				},
-			},
-			["BigWigs_Plugins_Proximity"] = {
-				["profiles"] = {
-					["Default"] = {
-						["fontSize"] = 18,
-						["font"] = "KKUI_Normal",
-						["posy"] = 346,
-						["width"] = 140,
-						["posx"] = 1024,
-						["height"] = 120,
-					},
-				},
-			},
-			["BigWigs_Plugins_Alt Power"] = {
-				["profiles"] = {
-					["Default"] = {
-						["posx"] = 1002,
-						["fontSize"] = 14,
-						["font"] = "KKUI_Normal",
-						["fontOutline"] = "OUTLINE",
-						["posy"] = 490,
-					},
-				},
-			},
-		},
-		["profiles"] = {
-			["Default"] = {
-				["fakeDBMVersion"] = true,
-			},
-		},
-	}
-
-	KkthnxUIDB.Variables["BWRequest"] = false
-end
-
-local function ForceAddonSkins()
-	if KkthnxUIDB.Variables["DBMRequest"] then
-		ForceDBMOptions()
-	end
-
-	if KkthnxUIDB.Variables["SkadaRequest"] then
-		ForceSkadaOptions()
-	end
-
-	if KkthnxUIDB.Variables["BWRequest"] then
-		ForceBigwigs()
-	end
-
-	if KkthnxUIDB.Variables["MaxDpsRequest"] then
-		ForceMaxDPSOptions()
-	end
-
-	if KkthnxUIDB.Variables["CursorTrailRequest"] then
-		ForceCursorTrail()
-	end
-
-	if KkthnxUIDB.Variables["HekiliRequest"] then
-		ForceHekiliOptions()
-	end
 end
 
 -- Tutorial
@@ -623,13 +238,12 @@ local function YesTutor()
 	tutor:CreateBorder()
 
 	local tutorLogo = tutor:CreateTexture(nil, "OVERLAY")
-	tutorLogo:SetSize(512, 256)
+	tutorLogo:SetSize(512 / 1.4, 256 / 1.4)
 	tutorLogo:SetBlendMode("ADD")
 	tutorLogo:SetAlpha(0.07)
 	tutorLogo:SetTexture(C["Media"].Textures.LogoTexture)
 	tutorLogo:SetPoint("CENTER", tutor, "CENTER", 0, 0)
 
-	K.CreateFontString(tutor, 30, K.Title, "", true, "TOPLEFT", 10, 25)
 	local ll = CreateFrame("Frame", nil, tutor)
 	ll:SetPoint("TOP", -40, -32)
 	K.CreateGF(ll, 80, 1, "Horizontal", .7, .7, .7, 0, .7)
@@ -647,11 +261,11 @@ local function YesTutor()
 	body:SetJustifyH("LEFT")
 	body:SetWordWrap(true)
 
-	local progressBar = CreateFrame('StatusBar', nil, tutor)
+	local progressBar = CreateFrame("StatusBar", nil, tutor)
 	progressBar:SetMinMaxValues(0, 500)
 	progressBar:SetValue(0)
 	progressBar:CreateBorder()
-	progressBar:SetPoint('TOP', tutor, 'BOTTOM', 0, -6)
+	progressBar:SetPoint("TOP", tutor, "BOTTOM", 0, -6)
 	progressBar:SetSize(480, 22)
 	progressBar:SetStatusBarTexture(C["Media"].Statusbars.KkthnxUIStatusbar)
 
@@ -746,20 +360,21 @@ local function YesTutor()
 			KkthnxUIDB.Variables["MaxDpsRequest"] = true
 			KkthnxUIDB.Variables["CursorTrailRequest"] = true
 			KkthnxUIDB.Variables["HekiliRequest"] = true
-			ForceAddonSkins()
+			Module.ForceAddonSkins()
 			KkthnxUIDB.Variables["ResetDetails"] = true
 			UIErrorsFrame:AddMessage(K.InfoColor.."Relevant AddOns Settings Loaded, You need to ReloadUI.")
 			pass:Hide()
 			PlaySound(21968)
 		elseif currentPage == 5 then
+			Module:ForceDefaultCVars() -- Set these one more time
 			StopSound(21968)
 			StopSound(140268)
 			KkthnxUIDB.Variables[K.Realm][K.Name].InstallComplete = true
 			tutor:Hide()
 			progressBar:Hide()
-			StaticPopup_Show("KKUI_CHANGES_RELOAD")
 			currentPage = 0
-			PlaySound(11466)
+			StaticPopup_Show("KKUI_CHANGES_RELOAD")
+			PlaySound(163017)
 		end
 
 		currentPage = currentPage + 1
@@ -793,7 +408,7 @@ local function HelloWorld()
 
 	local welcomeBoss = welcome:CreateTexture(nil, "OVERLAY")
 	welcomeBoss:SetSize(128, 64)
-	welcomeBoss:SetTexture("Interface\\ENCOUNTERJOURNAL\\UI-EJ-BOSS-Illidan Stormrage")
+	welcomeBoss:SetTexture("Interface\\ENCOUNTERJOURNAL\\UI-EJ-BOSS-Sylvanas Windrunner Shadowlands")
 	welcomeBoss:SetPoint("TOPRIGHT", welcome, "TOPRIGHT", 10, 64)
 
 	local ll = CreateFrame("Frame", nil, welcome)
@@ -849,24 +464,24 @@ local function HelloWorld()
 	goTutor.text = goTutor:CreateFontString(nil, "OVERLAY")
 	goTutor.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
 	goTutor.text:SetPoint("CENTER")
-	goTutor.text:SetText(L["Install"])
+	goTutor.text:SetText("Install")
 
-	goTutor.glowFrame = goTutor.glowFrame or CreateFrame("Frame", nil, goTutor, "BackdropTemplate")
+	goTutor.glowFrame = CreateFrame("Frame", nil, goTutor, "BackdropTemplate")
 	goTutor.glowFrame:SetBackdrop({edgeFile = C["Media"].Borders.GlowBorder, edgeSize = 12})
 	goTutor.glowFrame:SetPoint("TOPLEFT", goTutor, -5, 5)
 	goTutor.glowFrame:SetPoint("BOTTOMRIGHT", goTutor, 5, -5)
 	goTutor.glowFrame:SetBackdropBorderColor(K.r, K.g, K.b)
 	goTutor.glowFrame:Hide()
 
-	goTutor.glowFrame.Animation = goTutor.glowFrame.Animation or goTutor.glowFrame:CreateAnimationGroup()
+	goTutor.glowFrame.Animation = goTutor.glowFrame:CreateAnimationGroup()
 	goTutor.glowFrame.Animation:SetLooping("BOUNCE")
-	goTutor.glowFrame.Animation.Fader = goTutor.glowFrame.Animation.Fader or goTutor.glowFrame.Animation:CreateAnimation("Alpha")
+	goTutor.glowFrame.Animation.Fader = goTutor.glowFrame.Animation:CreateAnimation("Alpha")
 	goTutor.glowFrame.Animation.Fader:SetFromAlpha(0.8)
 	goTutor.glowFrame.Animation.Fader:SetToAlpha(0.2)
 	goTutor.glowFrame.Animation.Fader:SetDuration(1)
 	goTutor.glowFrame.Animation.Fader:SetSmoothing("OUT")
 
-	if goTutor.glowFrame.Animation and not goTutor.glowFrame.Animation:IsPlaying() then
+	if not goTutor.glowFrame.Animation:IsPlaying() then
 		goTutor.glowFrame.Animation:Play()
 		goTutor.glowFrame:Show()
 	end
@@ -880,18 +495,18 @@ local function HelloWorld()
 		YesTutor()
 	end)
 
-	local goSteam = CreateFrame("Button", nil, welcome)
-	goSteam:SetPoint("BOTTOM", 0, 50)
-	goSteam:SetSize(110, 20)
-	goSteam:SkinButton()
+	local goTwitch = CreateFrame("Button", nil, welcome)
+	goTwitch:SetPoint("BOTTOM", 0, 50)
+	goTwitch:SetSize(110, 20)
+	goTwitch:SkinButton()
 
-	goSteam.text = goSteam:CreateFontString(nil, "OVERLAY")
-	goSteam.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
-	goSteam.text:SetPoint("CENTER")
-	goSteam.text:SetText(K.SystemColor.."Steam Wishlist|r")
+	goTwitch.text = goTwitch:CreateFontString(nil, "OVERLAY")
+	goTwitch.text:SetFontObject(K.GetFont(C["UIFonts"].GeneralFonts))
+	goTwitch.text:SetPoint("CENTER")
+	goTwitch.text:SetText("|CFF8F76BDTwitch|r")
 
-	goSteam:SetScript("OnClick", function()
-		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "https://store.steampowered.com/wishlist/id/Kkthnx")
+	goTwitch:SetScript("OnClick", function()
+		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "https://www.twitch.tv/kkthnxtv")
 	end)
 
 	local goPaypal = CreateFrame("Button", nil, welcome)
@@ -905,7 +520,7 @@ local function HelloWorld()
 	goPaypal.text:SetText("|CFF0079C1Paypal|r")
 
 	goPaypal:SetScript("OnClick", function()
-		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "http://paypal.me/kkthnx")
+		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "https://www.paypal.com/paypalme/kkthnx")
 	end)
 
 	local goPatreon = CreateFrame("Button", nil, welcome)
@@ -922,7 +537,6 @@ local function HelloWorld()
 		StaticPopup_Show("KKUI_POPUP_LINK", nil, nil, "https://www.patreon.com/kkthnx")
 	end)
 end
-
 _G.SlashCmdList["KKUI_INSTALLER"] = HelloWorld
 _G.SLASH_KKUI_INSTALLER1 = "/install"
 
@@ -932,7 +546,7 @@ function Module:OnEnable()
 	K.HideInterfaceOption(_G.Display_UIScaleSlider)
 
 	-- Tutorial and settings
-	ForceAddonSkins()
+	Module.ForceAddonSkins()
 	if not KkthnxUIDB.Variables[K.Realm][K.Name].InstallComplete then
 		HelloWorld()
 	end

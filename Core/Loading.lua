@@ -135,18 +135,6 @@ local function KKUI_VerifyDatabase()
 		KkthnxUIDB.Variables[K.Realm][K.Name].BindType = 1
 	end
 
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].ChangeLog then
-		KkthnxUIDB.Variables[K.Realm][K.Name].ChangeLog = {}
-	end
-
-	if not KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList then
-		KkthnxUIDB.Variables[K.Realm][K.Name].CustomJunkList = {}
-	end
-
-	if KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion == nil then
-		KkthnxUIDB.Variables[K.Realm][K.Name].DetectVersion = K.Version
-	end
-
 	if not KkthnxUIDB.Variables[K.Realm][K.Name].FavouriteItems then
 		KkthnxUIDB.Variables[K.Realm][K.Name].FavouriteItems = {}
 	end
@@ -196,11 +184,15 @@ local function KKUI_VerifyDatabase()
 	end
 
 	if not KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.Switcher then
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.Switcher = {}
+		if KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList then
+			KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.Switcher = {}
+		end
 	end
 
 	if not KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells then
-		KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells = {}
+		if KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList then
+			KkthnxUIDB.Variables[K.Realm][K.Name].AuraWatchList.IgnoreSpells = {}
+		end
 	end
 
 	-- Settings
@@ -228,6 +220,27 @@ local function KKUI_VerifyDatabase()
 
 	if KkthnxUIDB.ShowSlots == nil then
 		KkthnxUIDB.ShowSlots = false
+	end
+
+	if not KkthnxUIDB.ChangeLog then
+		KkthnxUIDB.ChangeLog = {}
+	end
+
+	if KkthnxUIDB.DetectVersion == nil then
+		KkthnxUIDB.DetectVersion = K.Version
+	end
+
+
+	if not KkthnxUIDB.CustomJunkList then
+		KkthnxUIDB.CustomJunkList = {}
+	end
+
+	if not KkthnxUIDB.MajorSpells then
+		KkthnxUIDB.MajorSpells = {}
+	end
+
+	if not KkthnxUIDB.MinimapButton then
+		KkthnxUIDB.MinimapButton = {}
 	end
 end
 

@@ -35,7 +35,7 @@ function K:Mover(text, value, anchor, width, height, isAuraWatch)
 		key = "AuraWatchMover"
 	end
 
-	local mover = CreateFrame("Frame", nil, UIParent)
+	local mover = CreateFrame("Button", nil, UIParent)
 	mover:SetWidth(width or self:GetWidth())
 	mover:SetHeight(height or self:GetHeight())
 
@@ -110,6 +110,7 @@ function Module:CalculateMoverPoints(mover, trimX, trimY)
 
 	x = x + (trimX or 0)
 	y = y + (trimY or 0)
+	x, y = K.Round(x), K.Round(y)
 
 	return x, y, point
 end
@@ -120,7 +121,6 @@ function Module:UpdateTrimFrame()
 	end
 
 	local x, y = Module:CalculateMoverPoints(self)
-	x, y = K.Round(x), K.Round(y)
 	f.__x:SetText(x)
 	f.__y:SetText(y)
 	f.__x.__current = x
@@ -132,7 +132,6 @@ function Module:DoTrim(trimX, trimY)
 	local mover = updater.__owner
 	if mover then
 		local x, y, point = Module:CalculateMoverPoints(mover, trimX, trimY)
-		x, y = K.Round(x), K.Round(y)
 		f.__x:SetText(x)
 		f.__y:SetText(y)
 		f.__x.__current = x
@@ -193,7 +192,7 @@ end
 function Module:UnlockElements()
 	for i = 1, #MoverList do
 		local mover = MoverList[i]
-		if not mover:IsShown() then
+		if not mover:IsShown() and not mover.isDisable then
 			mover:Show()
 		end
 	end
@@ -229,14 +228,14 @@ local function CreateConsole()
 		return
 	end
 
-	f = f or CreateFrame("Frame", "KKUI_MoverFrame", UIParent)
+	f = CreateFrame("Frame", nil, UIParent)
 	f:SetPoint("CENTER", 0, 150)
 	f:SetSize(218, 90)
 	f:CreateBorder()
 
 	f.text = f:CreateFontString(nil, "OVERLAY")
 	f.text:SetPoint("TOP", 0, -10)
-	f.text:FontTemplate()
+	f.text:SetFontObject(KkthnxUIFont)
 	f.text:SetText(K.Title.." Movers Config")
 	f.text:SetWordWrap(false)
 
@@ -248,7 +247,7 @@ local function CreateConsole()
 
 		bu[i].text = bu[i]:CreateFontString(nil, "OVERLAY")
 		bu[i].text:SetPoint("CENTER")
-		bu[i].text:FontTemplate()
+		bu[i].text:SetFontObject(KkthnxUIFont)
 		bu[i].text:SetText(text[i])
 		bu[i].text:SetWordWrap(false)
 
@@ -302,10 +301,11 @@ local function CreateConsole()
 	f.__trimText = K.CreateFontString(frame, 12, NONE, "", "system", "BOTTOM", 0, 5)
 
 	local xBox = CreateFrame("EditBox", nil, frame)
-	xBox:SetSize(60, 22)
+	xBox:SetSize(60, 18)
 	xBox:SetAutoFocus(false)
 	xBox:SetTextInsets(5, 5, 0, 0)
 	xBox:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "")
+	xBox:CreateBorder()
 	xBox:SetScript("OnEscapePressed", frame.ClearFocus)
 	xBox:SetScript("OnEnterPressed", frame.ClearFocus)
 	xBox:SetPoint("TOPRIGHT", frame, "TOP", -12, -5)
@@ -324,10 +324,11 @@ local function CreateConsole()
 	f.__x = xBox
 
 	local yBox = CreateFrame("EditBox", nil, frame)
-	yBox:SetSize(60, 22)
+	yBox:SetSize(60, 18)
 	yBox:SetAutoFocus(false)
 	yBox:SetTextInsets(5, 5, 0, 0)
 	yBox:SetFont(C["Media"].Fonts.KkthnxUIFont, 12, "")
+	yBox:CreateBorder()
 	yBox:SetScript("OnEscapePressed", frame.ClearFocus)
 	yBox:SetScript("OnEnterPressed", frame.ClearFocus)
 	yBox:SetPoint("TOPRIGHT", frame, "TOP", -12, -29)
@@ -365,6 +366,7 @@ local function CreateConsole()
 	for i = 1, 4 do
 		arrows[i] = CreateFrame("Button", nil, frame)
 		arrows[i]:SetSize(16, 16)
+		arrows[i]:SkinButton()
 
 		arrows[i].Icon = arrows[i]:CreateTexture(nil, "ARTWORK")
 		arrows[i].Icon:SetTexture("Interface\\OPTIONSFRAME\\VoiceChat-Play")
