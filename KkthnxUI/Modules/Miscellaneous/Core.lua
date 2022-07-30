@@ -572,6 +572,17 @@ function Module:CreatePetHappiness()
 	end
 end
 
+function Module:CreateKillTutorials()
+  if not C["General"].NoTutorialButtons then
+    return
+  end
+
+  _G.HelpPlate:Kill()
+  _G.HelpPlateTooltip:Kill()
+  _G.SpellBookFrameTutorialButton:Kill()
+  _G.WorldMapFrame.BorderFrame.Tutorial:Kill()
+end
+
 function Module:OnEnable()
 	self:CharacterStatePanel()
 	self:CreateAFKCam()
@@ -597,6 +608,8 @@ function Module:OnEnable()
 	self:CreateTicketStatusFrameMove()
 	self:CreateTradeTabs()
 	self:CreateTradeTargetInfo()
+  self:CreateKillTutorials()
+
 
 	-- Auto chatBubbles
 	if C["Misc"].AutoBubbles then

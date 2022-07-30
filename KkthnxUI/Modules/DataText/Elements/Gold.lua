@@ -9,9 +9,15 @@ local unpack = _G.unpack
 
 local CLASS_ICON_TCOORDS = _G.CLASS_ICON_TCOORDS
 local CURRENCY = _G.CURRENCY
+local C_CurrencyInfo_GetBackpackCurrencyInfo = _G.C_CurrencyInfo.GetBackpackCurrencyInfo
+local C_CurrencyInfo_GetCurrencyInfo = _G.C_CurrencyInfo.GetCurrencyInfo
+local C_Timer_NewTicker = _G.C_Timer.NewTicker
+local C_WowTokenPublic_GetCurrentMarketPrice = _G.C_WowTokenPublic.GetCurrentMarketPrice
+local C_WowTokenPublic_UpdateMarketPrice = _G.C_WowTokenPublic.UpdateMarketPrice
 local GameTooltip = _G.GameTooltip
 local GetAutoCompleteRealms = _G.GetAutoCompleteRealms
 local GetMoney = _G.GetMoney
+local GetNumWatchedTokens = _G.GetNumWatchedTokens
 local IsControlKeyDown = _G.IsControlKeyDown
 local NO = _G.NO
 local StaticPopupDialogs = _G.StaticPopupDialogs
@@ -19,6 +25,7 @@ local TOTAL = _G.TOTAL
 local YES = _G.YES
 
 local slotString = "Bags"..": %s%d"
+local ticker
 local profit = 0
 local spent = 0
 local oldMoney = 0
@@ -60,6 +67,15 @@ local function getSlotString()
 	end
 end
 
+local eventList = {
+	"BN_FRIEND_ACCOUNT_ONLINE",
+	"BN_FRIEND_ACCOUNT_OFFLINE",
+	"BN_FRIEND_INFO_CHANGED",
+	"FRIENDLIST_UPDATE",
+	"PLAYER_ENTERING_WORLD",
+	"CHAT_MSG_SYSTEM",
+}
+
 local function OnEvent(_, event, arg1)
 	if not IsLoggedIn() then
 		return
@@ -72,6 +88,11 @@ local function OnEvent(_, event, arg1)
 		if arg1 < 0 or arg1 > 4 then
 			return
 		end
+	end
+
+	if not ticker then
+		C_WowTokenPublic_UpdateMarketPrice()
+		ticker = C_Timer_NewTicker(60, C_WowTokenPublic_UpdateMarketPrice)
 	end
 
 	local newMoney = GetMoney()
@@ -150,6 +171,33 @@ local function OnEnter(self)
 	end
 	GameTooltip:AddLine(" ")
 	GameTooltip:AddDoubleLine(TOTAL..":", K.FormatMoney(totalGold), 0.63, 0.82, 1, 1, 1, 1)
+	if K.Realm ~= "Oribos" then
+		GameTooltip:AddLine(" ")
+		GameTooltip:AddDoubleLine("|TInterface\\ICONS\\WoW_Token01:12:12:0:0:50:50:4:46:4:46|t ".."Token:", K.FormatMoney(C_WowTokenPublic_GetCurrentMarketPrice() or 0), 0.5, 0.7, 1, 1, 1, 1)
+	end
+
+	for i = 1, GetNumWatchedTokens() do
+		local currencyInfo = C_CurrencyInfo_GetBackpackCurrencyInfo(i)
+		if not currencyInfo then
+			break
+		end
+
+		local name, count, icon, currencyID = currencyInfo.name, currencyInfo.quantity, currencyInfo.iconFileID, currencyInfo.currencyTypesID
+		if name and i == 1 then
+			GameTooltip:AddLine(" ")
+			GameTooltip:AddLine(CURRENCY..":", 0.5, 0.7, 1)
+		end
+
+		if name and count then
+			local total = C_CurrencyInfo_GetCurrencyInfo(currencyID).maxQuantity
+			local iconTexture = " |T"..icon..":12:12:0:0:50:50:4:46:4:46|t"
+			if total > 0 then
+				GameTooltip:AddDoubleLine(name, count.."/"..total..iconTexture, 1, 1, 1, 1, 1, 1)
+			else
+				GameTooltip:AddDoubleLine(name, count..iconTexture, 1, 1, 1, 1, 1, 1)
+			end
+		end
+	end
 
 	if self == GoldDataText then
 		GameTooltip:AddLine(" ")
@@ -203,12 +251,9 @@ function Module:CreateGoldDataText()
 		GoldDataText.Text:SetPoint("LEFT", GoldDataText.Texture, "RIGHT", 0, 0)
 	end
 
-	GoldDataText:RegisterEvent("PLAYER_MONEY", OnEvent)
-	GoldDataText:RegisterEvent("SEND_MAIL_MONEY_CHANGED", OnEvent)
-	GoldDataText:RegisterEvent("SEND_MAIL_COD_CHANGED", OnEvent)
-	GoldDataText:RegisterEvent("PLAYER_TRADE_MONEY", OnEvent)
-	GoldDataText:RegisterEvent("TRADE_MONEY_CHANGED", OnEvent)
-	GoldDataText:RegisterEvent("PLAYER_ENTERING_WORLD", OnEvent)
+	for _, event in pairs(eventList) do
+		GoldDataText:RegisterEvent(event)
+	end
 
 	GoldDataText:SetScript("OnEvent", OnEvent)
 	GoldDataText:SetScript("OnEnter", OnEnter)

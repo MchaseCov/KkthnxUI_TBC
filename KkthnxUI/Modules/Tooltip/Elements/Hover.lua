@@ -1,21 +1,26 @@
-local K = unpack(KkthnxUI)
+local K, _, L = unpack(KkthnxUI)
 local Module = K:GetModule("Tooltip")
 
 local _G = _G
 local string_match = _G.string.match
+local string_split = _G.string.split
+local tonumber = _G.tonumber
 
+local BOSS = _G.BOSS
 local GameTooltip = _G.GameTooltip
+local INSTANCE = _G.INSTANCE
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS
 
-local orig1, orig2 = {}, {}
+local orig1, orig2, sectionInfo = {}, {}, {}
 local linkTypes = {
-	item = true,
+	currency = true,
 	enchant = true,
-	spell = true,
-	quest = true,
-	unit = true,
-	talent = true,
 	instancelock = true,
+	item = true,
+	quest = true,
+	spell = true,
+	talent = true,
+	unit = true,
 }
 
 function Module:HyperLink_SetTypes(link)

@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-   <Script file="Blizzard\Elements\Fonts.lua" />
    <!-- DataText -->
    <Script file="DataText\Core.lua" />
-   <Script file="DataText\Elements\Durability.lua" />
-   <Script file="DataText\Elements\Latency.lua" />
-   <Script file="DataText\Elements\System.lua" />
    <Script file="DataText\Elements\Coords.lua" />
+   <Script file="DataText\Elements\Durability.lua" />
    <Script file="DataText\Elements\Friends.lua" />
    <Script file="DataText\Elements\Gold.lua" />
    <Script file="DataText\Elements\Guild.lua" />
+   <Script file="DataText\Elements\Latency.lua" />
    <Script file="DataText\Elements\Location.lua" />
+   <Script file="DataText\Elements\System.lua" />
    <Script file="DataText\Elements\Time.lua" />
    <!-- Blizzard -->
    <Script file="Blizzard\Core.lua" />
    <Script file="Blizzard\Elements\AlertFrames.lua" />
+  <!-- <Script file="Blizzard\Elements\AltPowerBar.lua" />-->
    <Script file="Blizzard\Elements\ColorPicker.lua" />
    <Script file="Blizzard\Elements\MirrorBars.lua" />
-   <Script file="Blizzard\Elements\NoTutorials.lua" />
+   <!--<Script file="Blizzard\Elements\ObjectiveFrame.lua" />-->
    <Script file="Blizzard\Elements\RaidUtility.lua" />
+   <!--<Script file="Blizzard\Elements\TimerTracker.lua" />-->
    <Script file="Blizzard\Elements\UIWidgets.lua" />
    <!-- Chat -->
    <Script file="Chat\Core.lua" />
@@ -47,7 +48,9 @@
    <Script file="ActionBars\Elements\CustomBar.lua" />
    <Script file="ActionBars\Elements\Stancebar.lua" />
    <Script file="ActionBars\Elements\Petbar.lua" />
+   <!--<Script file="ActionBars\Elements\Extrabar.lua" />-->
    <Script file="ActionBars\Elements\Vehicle.lua" />
+   <!--<Script file="ActionBars\Elements\ExtraQuestButton.lua" />-->
    <Script file="ActionBars\Elements\BlizzArt.lua" />
    <Script file="ActionBars\Elements\Fader.lua" />
    <Script file="ActionBars\Elements\AspectBar.lua" />
@@ -62,6 +65,7 @@
    <Script file="Auras\Elements\AuraWatch.lua" />
    <Script file="Auras\Elements\Reminder.lua" />
    <Script file="Auras\Elements\Totems.lua" />
+  <!-- <Include file="Auras\Lumos\Lumos.xml" />-->
    <!-- Maps -->
    <Script file="Maps\MiniMap.lua" />
    <Script file="Maps\WorldMap.lua" />
@@ -87,6 +91,7 @@
    <Script file="UnitFrames\Units\Pet.lua" />
    <Script file="UnitFrames\Units\Focus.lua" />
    <Script file="UnitFrames\Units\FocusTarget.lua" />
+   <!--<Script file="UnitFrames\Units\Boss.lua" />-->
    <Script file="UnitFrames\Units\Arena.lua" />
    <Script file="UnitFrames\Units\Nameplates.lua" />
    <Script file="UnitFrames\Groups\Party.lua" />
@@ -103,10 +108,15 @@
    <Script file="Miscellaneous\Core.lua" />
    <Script file="Miscellaneous\Elements\AFKCam.lua" />
    <Script file="Miscellaneous\Elements\AlreadyKnown.lua" />
+  <!-- <Script file="Miscellaneous\Elements\ExpRep.lua" />-->
    <Script file="Miscellaneous\Elements\CharacterStatPanel.lua" />
    <Script file="Miscellaneous\Elements\HelmCloakToggle.lua" />
    <Script file="Miscellaneous\Elements\ImprovedMail.lua" />
-   <Script file="Miscellaneous\Elements\MouseTrail.lua" />
+      <Script file="Miscellaneous\Elements\MouseTrail.lua" />
+
+  <!-- <Script file="Miscellaneous\Elements\MDGuildBest.lua" /> -->
+  <!-- <Script file="Miscellaneous\Elements\MerchantItemlevel.lua" />-->
+   <!--<Script file="Miscellaneous\Elements\MissingStats.lua" />-->
    <Script file="Miscellaneous\Elements\MovableFrames.lua" />
    <Script file="Miscellaneous\Elements\MuteSounds.lua" />
    <Script file="Miscellaneous\Elements\PulseCooldown.lua" />
@@ -128,30 +138,30 @@
    <Script file="Announcements\Elements\Sapped.lua" />
    <!-- Automation -->
    <Script file="Automation\Core.lua" />
-   <Script file="Automation\Elements\AutoDismount.lua" />
+  <Script file="Automation\Elements\AutoDismount.lua" />
+
    <Script file="Automation\Elements\AutoOpen.lua" />
    <Script file="Automation\Elements\BadBuffs.lua" />
    <Script file="Automation\Elements\BestReward.lua" />
-   <Script file="Automation\Elements\CounterSpitters.lua" />
+      <Script file="Automation\Elements\CounterSpitters.lua" />
+
    <Script file="Automation\Elements\DeclineDuel.lua" />
    <Script file="Automation\Elements\Disenchant.lua" />
    <Script file="Automation\Elements\Invite.lua" />
    <Script file="Automation\Elements\Quest.lua" />
-   <Script file="Automation\Elements\RefillAmmo.lua" />
+      <Script file="Automation\Elements\RefillAmmo.lua" />
    <Script file="Automation\Elements\Release.lua" />
    <Script file="Automation\Elements\Resurrect.lua" />
    <Script file="Automation\Elements\SkipCinematic.lua" />
    <Script file="Automation\Elements\Summon.lua" />
    <Script file="Automation\Elements\TabBinder.lua" />
    <Script file="Automation\Elements\WhisperInvite.lua" />
-   <!-- DataBars -->
-   <Script file="DataBars\Core.lua" />
    <!-- Loot -->
    <Script file="Loot\Core.lua" />
+   <Script file="Loot\Elements\GroupLoot.lua" />
    <Script file="Loot\Elements\AutoConfirm.lua" />
    <Script file="Loot\Elements\AutoGreed.lua" />
    <Script file="Loot\Elements\FasterLoot.lua" />
-   <Script file="Loot\Elements\GroupLoot.lua" />
    <!-- Skins Blizzard -->
    <Include file="Skins\Core.lua" />
    <Include file="Skins\Blizzard\Character.lua" />
@@ -162,7 +172,7 @@
    <Include file="Skins\Blizzard\Miscellaneous.lua" />
    <Include file="Skins\Blizzard\ObjectiveTracker.lua" />
    <Include file="Skins\Blizzard\SpellBook.lua" />
-   <Include file="Skins\Blizzard\StackSplit.lua" />
+      <Include file="Skins\Blizzard\StackSplit.lua" />
    <Include file="Skins\Blizzard\StaticPopup.lua" />
    <Include file="Skins\Blizzard\Talent.lua" />
    <Include file="Skins\Blizzard\TradeSkill.lua" />
