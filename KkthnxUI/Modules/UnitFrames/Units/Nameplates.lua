@@ -173,7 +173,7 @@ function Module:UpdateColor(_, unit)
 		elseif UnitIsTapDenied(unit) and not UnitPlayerControlled(unit) then
 			r, g, b = .6, .6, .6
 		else
-			r, g, b = K.oUF:UnitSelectionColor(unit, true)
+			r, g, b = K.UnitColor(unit)
 			if status and C["Nameplate"].TankMode then
 				if status == 3 then
 					r, g, b = secureColor[1], secureColor[2], secureColor[3]
